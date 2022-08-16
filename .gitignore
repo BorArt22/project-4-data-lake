@@ -1,0 +1,8 @@
+# ignore all configure files
+*.cfg
+
+# ignore all python notebooks
+*.ipynb
+
+# ignore python notebooks template
+.ipynb_checkpoints
