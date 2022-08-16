@@ -1,11 +1,8 @@
-# ignore all configure files
-*.cfg
+# ignore datalake configure files
+dl.cfg
 
 # ignore temp python notebooks
 create_datalake.ipynb
 
 # ignore python notebooks template
 .ipynb_checkpoints
-
-#
-dl.cfg
