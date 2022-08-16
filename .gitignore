@@ -6,3 +6,6 @@ create_datalake.ipynb
 
 # ignore python notebooks template
 .ipynb_checkpoints
+
+#
+dl.cfg
