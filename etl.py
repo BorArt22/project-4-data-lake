@@ -119,7 +119,7 @@ def process_log_data(spark, input_data, output_data):
                                 col('sessionId').alias('session_id'), 'location', col('userAgent').alias('user_agent')) \
                         .withColumn("songplay_id",row_number().over(windowSpec_songplay)) \
                         .withColumn("year",year("start_time")) \
-                        .withColumn("month",month("start_time")).collect()
+                        .withColumn("month",month("start_time"))
 
     # write songplays table to parquet files partitioned by year and month in S3
     songplays_table.write.partitionBy("year","month").mode('overwrite') \
