@@ -11,8 +11,8 @@ from pyspark.sql.functions import row_number, desc, asc, length, lower, trim
 config = configparser.ConfigParser()
 config.read('dl.cfg')
 
-os.environ['AWS_ACCESS_KEY_ID']=config['AWS_ACCESS_KEY_ID']
-os.environ['AWS_SECRET_ACCESS_KEY']=config['AWS_SECRET_ACCESS_KEY']
+os.environ['AWS_ACCESS_KEY_ID']=config.get('AWS','AWS_ACCESS_KEY_ID')
+os.environ['AWS_SECRET_ACCESS_KEY']=config.get('AWS','AWS_SECRET_ACCESS_KEY')
 
 
 def create_spark_session():
@@ -89,7 +89,7 @@ def process_log_data(spark, input_data, output_data):
     users_table.write.mode('overwrite') \
                      .parquet(output_data + "users/users_table.parquet")
     # extract columns and delete duplicate in start_time to create time table
-    get_timestamp = udf(lambda x: datetime.fromtimestamp(x/1000.0)strftime("%m-%d-%Y %H:%M:%S.%f")[:-3])
+    get_timestamp = udf(lambda x: datetime.fromtimestamp(x/1000.0).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3])
     get_datetime = udf(lambda x: datetime.fromtimestamp(x/1000.0).strftime('%Y-%m-%d %H:%M:%S'))
     df = df.withColumn("ts_timestamp",get_timestamp("ts")) \
            .withColumn("ts_datetime",get_datetime("ts"))
@@ -134,7 +134,7 @@ def main():
     '''
     spark = create_spark_session()
     input_data = "s3a://udacity-dend/"
-    output_data = "s3://udacity-datalake-sparkify-bav/"
+    output_data = "s3://udacity-datalake-sparkify-bav/" #right your S3 bucket
     
     process_song_data(spark, input_data, output_data)    
     process_log_data(spark, input_data, output_data)

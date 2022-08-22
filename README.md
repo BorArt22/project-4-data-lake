@@ -1,3 +1,4 @@
+
 # Sparkify song play logs: Datalake
 This document describes how to create and load data to a datalake for analysing songs and user activity on Sparkify (music streaming app).
 
@@ -11,7 +12,8 @@ The datalake has been created in S3 (using EMR cluster in cloud-computing platfo
 3. [Project Files](#project-files)
 4. [Project Launching](#project-launching)
 5. [Process Initial Data](#process-initial-data)
-6. [Example queries and results for song play analysis](#example-queries-and-results-for-song-play-analysis)
+6. [Schema for Song Play Datalake](#schema-for-song-play-datalake)
+7. [Example queries and results for song play analysis](#example-queries-and-results-for-song-play-analysis)
 
 # Project Description
 A music streaming startup, Sparkify, has grown their user base and song database more and want to move their data warehouse to a data lake. Their data resides in S3, in a directory of JSON logs on user activity on the app, as well as a directory with JSON metadata on the songs in their app.
@@ -73,11 +75,126 @@ run etl.py
 
 ## Process log data
 
+# Schema for Song Play Datalake
+##  Fact Table
+### songplays
+records in log data associated with song plays i.e. records with page `NextSong`
+|Field|Data Type|Description|
+|--|--|--|
+|start_time|STRING|Start time of songplay|
+|user_id|STRING|Indeficator of user|
+|level|STRING|User level|
+|song_id|STRING|Indeficator of song|
+|artist_id|STRING|Indeficator of artist|
+|session_id|LONG|Indeficator of session|
+|location|STRING|Location of songplay|
+|user_agent|STRING|User agent|
+|songplay_id|INTEGER|Indeficator of songplay|
+|year|INTEGER|Year|
+|month|INTEGER|Number of month|
+## Dimension Tables
+### users
+users in the app
+|Field|Data Type|Description|
+|--|--|--|
+|user_id|STRING|Indeficator of user|
+|first_name|STRING|First name of user|
+|last_name|STRING|Last name of user|
+|gender|STRING|Gender of user (F - female, M - male|
+|level|STRING|User level|
+### songs
+songs in music database
+|Field|Data Type|Description|
+|--|--|--|
+|song_id|STRING|Indeficator of song|
+|title|STRING|Song title|
+|duration|DOUBLE|Duration of song in seconds|
+|year|INTEGER|Released year of song|
+|artist_id|STRING|Indeficator of artist|
+### artists
+artists in music database
+|Field|Data Type|Description|
+|--|--|--|
+|artist_id|STRING|Indeficator of artist|
+|name|STRING|Artist name|
+|location|STRING|Artist location|
+|latitude|DOUBLE|Latitude of artist location|
+|longitude|DOUBLE|Longitude of artist location|
+### time
+timestamps of records in  **songplays**  broken down into specific units
+|Field|Data Type|Description|
+|--|--|--|
+|start_time|STRING|Start time of songplay|
+|hour|INTEGER|Hour|
+|day|INTEGER|Day|
+|week|INTEGER|Number of week|
+|weekday|STRING|Number of dayweek|
+|year|INTEGER|Year|
+|month|INTEGER|Number of month|
 # Example queries and results for song play analysis
 ### Query 1: Find all the users that has paid account and listen more than 10 songs, who are they
-
-
+```
+df_listofusers = songplays.filter(songplays.level == 'paid') \
+                          .select("user_id") \
+                          .groupBy("user_id") \
+                          .agg({'user_id':'count'}) \
+                          .withColumnRenamed('count(user_id)', 'countforusers')
+```
+```
+df_listofusers.sort(desc('countforusers')) \
+              .filter(df_listofusers.countforusers > 10) \
+              .join(users, users.user_id == df_listofusers.user_id) \
+              .select(users.first_name,users.last_name) \
+              .show()
+```
+|first_name|last_name|
+|--|--|
+|     Avery|  Watkins|
+|    Jaleah|    Hayes|
+|    Harper|  Barrett|
+|     Amiya| Davidson|
+|   Kinsley|    Young|
+|    Hayden|    Brock|
+|     Avery| Martinez|
+|     Emily|   Benson|
+|  Mohammad|Rodriguez|
+|     Rylan|   George|
+|Jacqueline|    Lynch|
+|    Jayden|   Graves|
+|   Matthew|    Jones|
+|     Layla|  Griffin|
+|     Chloe|   Cuevas|
+|     Tegan|   Levine|
+|    Aleena|    Kirby|
+|      Kate|  Harrell|
+|      Sara|  Johnson|
+|     Jacob|    Klein|
 ### Query 2:  Most popular artist among paid users 
-
-
+```
+df_artist = songplays.filter(songplays.level == 'paid') \
+                          .select("artist_id") \
+                          .groupBy("artist_id") \
+                          .agg({'artist_id':'count'}) \
+                          .withColumnRenamed('count(artist_id)', 'count_artist')
+```
+```
+df_artist.sort(desc('count_artist')) \
+         .join(artists, artists.artist_id==df_artist.artist_id) \
+         .select(artists.name) \
+         .show(1)
+```
+|artist_name|
+|--|
+|No Mercy|
 ### Query 3: How much did User 2 listen songs
+```
+songplays.filter(songplays.user_id == 2) \
+         .select("user_id") \
+         .groupBy("user_id") \
+         .agg({'user_id':'count'}) \
+         .withColumnRenamed('count(user_id)', 'count_listening') \
+         .show()
+```
+|user_id|count_listening|
+|--|--|
+|2|10|
