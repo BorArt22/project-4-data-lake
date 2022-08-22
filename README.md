@@ -72,9 +72,21 @@ run etl.py
 
 # Process initial data
 ## Process song data
-
+1. Read all json files from `s3://udacity-dend/song_data`;
+2. Extract columns (*song_id, title, artist_id, year, duration*) and delete duplicate in song_id to create songs table;
+3. Write songs table to parquet files partitioned by year and artist_id in `s3://udacity-datalake-sparkify-bav/songs`;
+4. Extract columns (*artist_id, name, location, lattitude, longitude*) and delete duplicate in artist_id to create artists table;
+5. Write artists table to parquet files in `s3://udacity-datalake-sparkify-bav/artists`.
 ## Process log data
-
+1. Read all json files from `s3://udacity-dend/log_data`;
+2. Filter records only from page `NextSong`;
+3. Extract columns (*user_id, first_name, last_name, gender, level*) and delete duplicate in user_id to create users table;
+4. Write users table to parquet files in `s3://udacity-datalake-sparkify-bav/users`;
+5. Add new fields `ts_timestamp` converting field `ts` from timestamp in milliseconds to timestamp string;
+6. Extract columns (_start_time_ as `ts_timestamp` ; _hour, day, week, month, year, weekday_ extract from `ts_timestamp` using pyspark functions) and delete duplicate in start_time to create time table;
+7. Write time table to parquet files partitioned by year and month in `s3://udacity-datalake-sparkify-bav/time`;
+8. Extract columns (*songplay_id* as row number function; *start_time* as `ts_timestamp`; *user_id, level, song_id, artist_id, session_id, location, user_agent* from joined song and log datasets) to create songplays table;
+9. Write songplays table to parquet files partitioned by year and month in  `s3://udacity-datalake-sparkify-bav/songplays`.
 # Schema for Song Play Datalake
 ##  Fact Table
 ### songplays
